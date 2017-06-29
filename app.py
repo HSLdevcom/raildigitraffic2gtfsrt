@@ -937,8 +937,8 @@ class railGTFSRTProvider(object):
 
 
 if __name__ == '__main__':
-    VR_ZIP = 'router-finland/matka.zip'
-    HSL_ZIP = 'router-finland/hsl.zip'
+    VR_ZIP = 'router-finland/MATKA.zip'
+    HSL_ZIP = 'router-finland/HSL.zip'
     router_zip_url = os.getenv(
         'ROUTER_ZIP_URL', 'https://api.digitransit.fi/routing-data/v2/finland/router-finland.zip')
 
