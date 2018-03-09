@@ -920,12 +920,12 @@ class railGTFSRTProvider(object):
                         dtext = alert_ent.alert.description_text.translation.add()
                         dtext.text = '\n\n'.join(trip_messages)
 
-    def buildGTFSRTMessage(self, alerts=0, fuzzy=False, debug=False):
+    def buildGTFSRTMessage(self, alerts=0, fuzzy=False, debug=False, differential=False):
         trains = self.train_dt.getTrainDataCopy()
 
         msg = gtfs_realtime_pb2.FeedMessage()
         msg.header.gtfs_realtime_version = "1.0"
-        msg.header.incrementality = msg.header.FULL_DATASET
+        msg.header.incrementality = msg.header.FULL_DATASET if not differential else msg.header.DIFFERENTIAL
 
         # return pprint.pformat(trains)
 
@@ -956,29 +956,29 @@ if __name__ == '__main__':
 
     ngtfsprov = railGTFSRTProvider(trainupdater, VR_ZIP)
 
-    @app.route('/national', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0})
-    @app.route('/national/<int:alerts>/<int:fuzzy>/<int:debug>')
-    def national(alerts, fuzzy, debug):
+    @app.route('/national', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0, 'differential': 0})
+    @app.route('/national/<int:alerts>/<int:fuzzy>/<int:debug>/<int:differential>')
+    def national(alerts, fuzzy, debug,differential):
         fuzzy = fuzzy == 1
         debug = debug == 1
 
         if not debug:
-            return ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug).SerializeToString()
+            return ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
-            return str(ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug))
+            return str(ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
 
     hslgtfsprov = railGTFSRTProvider(trainupdater, HSL_ZIP)
 
-    @app.route('/hsl', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0})
-    @app.route('/hsl/<int:alerts>/<int:fuzzy>/<int:debug>')
-    def hsl(alerts, fuzzy, debug):
+    @app.route('/hsl', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0, 'differential': 0})
+    @app.route('/hsl/<int:alerts>/<int:fuzzy>/<int:debug>/<int:differential>')
+    def hsl(alerts, fuzzy, debug,differential):
         fuzzy = fuzzy == 1
         debug = debug == 1
 
         if not debug:
-            return hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug).SerializeToString()
+            return hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
-            return str(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug))
+            return str(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
 
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port)
