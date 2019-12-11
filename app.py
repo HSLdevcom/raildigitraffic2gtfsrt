@@ -41,25 +41,21 @@ def getCompTime(eventrow):
         return eventrow['scheduledTime']
 
 
-def downloadGTFS(url, zip_in_zips):
-    while 1:
-        r = requests.get(url, stream=True)
+def downloadGTFS(urls):
+    for gtfs_url in urls:
+        while 1:
+            r = requests.get(gtfs_url)
 
-        if r.status_code == 200:
-            with open('tmp.zip', 'wb') as out_file:
-                r.raw.decode_content = True
-                shutil.copyfileobj(r.raw, out_file)
-            del r
-            zf = zipfile.ZipFile('tmp.zip')
-            for name in zip_in_zips:
-                print('Extracting ' + name)
-                zf.extract(name)
-            del zf
-            break
-        else:
-            logging.warning('Could not load router-zip from ' +
-                            url + ' http-status:' + str(r.status_code))
-            time.sleep(5)
+            if r.status_code == 200:
+                file_name = gtfs_url.split('/')[-1]
+                with open(file_name, 'wb') as f:
+                    f.write(r.content)
+
+                break
+            else:
+                logging.warning('Could not load router-zip from ' +
+                                gtfs_url + ' http-status:' + str(r.status_code))
+                time.sleep(5)
 
 
 def getCategoryCodes(detailed=False):
@@ -937,13 +933,18 @@ class railGTFSRTProvider(object):
 
 
 if __name__ == '__main__':
-    VR_ZIP = 'router-finland/MATKA.zip'
-    HSL_ZIP = 'router-finland/HSL.zip'
-    router_zip_url = os.getenv(
-        'ROUTER_ZIP_URL', 'https://api.digitransit.fi/routing-data/v2/finland/router-finland.zip')
+    base_url = os.getenv(
+        'API_BASE_URL', 'https://api.digitransit.fi/routing-data/v2/')
 
-    if not DEBUG or not os.path.exists('tmp.zip'):
-        downloadGTFS(router_zip_url, [VR_ZIP, HSL_ZIP])
+    VR_ZIP = 'MATKA.zip'
+    VR_ZIP_URL = '%sfinland/%s' % (base_url, VR_ZIP)
+    HSL_ZIP = 'HSL.zip'
+    HSL_ZIP_URL = '%shsl/%s' % (base_url, HSL_ZIP)
+    TAMPERE_ZIP = 'TampereVR.zip'
+    TAMPERE_ZIP_URL = '%swaltti/%s' % (base_url, TAMPERE_ZIP)
+
+    if not DEBUG:
+        downloadGTFS([VR_ZIP_URL, HSL_ZIP_URL, TAMPERE_ZIP_URL])
 
     trainupdater = None
     trainupdater = railDigitrafficClient(category_filters=set(
@@ -979,6 +980,19 @@ if __name__ == '__main__':
             return hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
             return str(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
+
+    tamperegtfsprov = railGTFSRTProvider(trainupdater, TAMPERE_ZIP)
+
+    @app.route('/tampere', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0, 'differential': 0})
+    @app.route('/tampere/<int:alerts>/<int:fuzzy>/<int:debug>/<int:differential>')
+    def tampere(alerts, fuzzy, debug,differential):
+        fuzzy = fuzzy == 1
+        debug = debug == 1
+
+        if not debug:
+            return tamperegtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
+        else:
+            return str(tamperegtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
 
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port)
