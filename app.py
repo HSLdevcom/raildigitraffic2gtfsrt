@@ -572,14 +572,13 @@ def gtfstime2timedelta(gtfstime):
 
     return datetime.timedelta(seconds=t[0] * 3600 + t[1] * 60 + t[2])
 
-# Parses start time and start date from 24 hour service day to 28 hour and 30 min service date format
+# Parses start time and start date from 0-23:59 service day to 04:30 - 28:29 service date format
 # Outputs tuple with %H:%M:%S format time and %Y%m%d format date
 def getStartTimeAndDate(starttime):
     time_without_seconds = starttime.replace(second=0)
     hour = starttime.hour
     minutes = starttime.minute
     date = starttime
-    # digitraffic uses 24 hour clock while service day for HSL is 28 hours and 30 mins long
     if hour < 4 or (hour == 4 and minutes < 30):
         hour += 24
         date -= datetime.timedelta(days=1)
