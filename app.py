@@ -572,19 +572,18 @@ def gtfstime2timedelta(gtfstime):
 
     return datetime.timedelta(seconds=t[0] * 3600 + t[1] * 60 + t[2])
 
-# Parses start time and start date from 24 hour service day to 28 hour service date format
+# Parses start time and start date from 24 hour service day to 28 hour and 30 min service date format
 # Outputs tuple with %H:%M:%S format time and %Y%m%d format date
-def getStartTimeAndDate(starttime, startdate):
+def getStartTimeAndDate(starttime):
     time_without_seconds = starttime.replace(second=0)
     hour = starttime.hour
-    minutes = starttime.minutes
-    date = datetime.datetime.strptime(startdate, '%Y-%m-%d')
+    minutes = starttime.minute
+    date = starttime
     # digitraffic uses 24 hour clock while service day for HSL is 28 hours and 30 mins long
     if hour < 4 or (hour == 4 and minutes < 30):
-        print("asd")
         hour += 24
         date -= datetime.timedelta(days=1)
-    start_time_string = '{:02d}:{:02d}:00'.format(hour, starttime.minute)
+    start_time_string = '{:02d}:{:02d}:00'.format(hour, minutes)
     date_string = date.strftime('%Y%m%d')
     return (start_time_string, date_string)
 
@@ -794,7 +793,7 @@ class railGTFSRTProvider(object):
                     if not fuzzy:
                         ent.trip_update.trip.trip_id = feed_tripid
                     ent.trip_update.trip.route_id = routeid
-                    (fixedTimeString, fixedDateString) = getStartTimeAndDate(train['first']['scheduledTime'], train['departureDate'])
+                    (fixedTimeString, fixedDateString) = getStartTimeAndDate(train['first']['scheduledTime'])
                     ent.trip_update.trip.start_time = fixedTimeString
                     ent.trip_update.trip.start_date = fixedDateString
                     ent.trip_update.trip.direction_id = int(
