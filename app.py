@@ -953,11 +953,11 @@ if __name__ == '__main__':
     VR_ZIP_URL = '%sfinland/%s' % (base_url, VR_ZIP)
     HSL_ZIP = 'HSL.zip'
     HSL_ZIP_URL = '%shsl/%s' % (base_url, HSL_ZIP)
-    TAMPERE_ZIP = 'TampereVR.zip'
-    TAMPERE_ZIP_URL = '%swaltti/%s' % (base_url, TAMPERE_ZIP)
+    # TAMPERE_ZIP = 'TampereVR.zip'
+    # TAMPERE_ZIP_URL = '%swaltti/%s' % (base_url, TAMPERE_ZIP)
 
     if not DEBUG:
-        downloadGTFS([VR_ZIP_URL, HSL_ZIP_URL, TAMPERE_ZIP_URL])
+        downloadGTFS([VR_ZIP_URL, HSL_ZIP_URL]) #[VR_ZIP_URL, HSL_ZIP_URL, TAMPERE_ZIP_URL]
 
     trainupdater = None
     trainupdater = railDigitrafficClient(category_filters=set(
@@ -994,18 +994,18 @@ if __name__ == '__main__':
         else:
             return str(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
 
-    tamperegtfsprov = railGTFSRTProvider(trainupdater, TAMPERE_ZIP)
+    # tamperegtfsprov = railGTFSRTProvider(trainupdater, TAMPERE_ZIP)
 
-    @app.route('/tampere', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0, 'differential': 0})
-    @app.route('/tampere/<int:alerts>/<int:fuzzy>/<int:debug>/<int:differential>')
-    def tampere(alerts, fuzzy, debug,differential):
-        fuzzy = fuzzy == 1
-        debug = debug == 1
+    # @app.route('/tampere', defaults={'debug': 0, 'fuzzy': 0, 'alerts': 0, 'differential': 0})
+    # @app.route('/tampere/<int:alerts>/<int:fuzzy>/<int:debug>/<int:differential>')
+    # def tampere(alerts, fuzzy, debug,differential):
+    #     fuzzy = fuzzy == 1
+    #     debug = debug == 1
 
-        if not debug:
-            return tamperegtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
-        else:
-            return str(tamperegtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
+    #     if not debug:
+    #         return tamperegtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
+    #     else:
+    #         return str(tamperegtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
 
     port = int(os.environ.get('PORT', 5001))
     app.run(host='0.0.0.0', port=port)
