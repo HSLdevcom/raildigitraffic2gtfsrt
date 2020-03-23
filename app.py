@@ -154,6 +154,24 @@ def getTrainSchedules(date=None):
     return scheduledata
 
 
+def hasEstimates(t):
+    for timetableRow in t['timeTableRows']:
+        if 'actualTime' in timetableRow or 'liveEstimateTime' in timetableRow or timetableRow['cancelled']:
+            return True
+
+    return False
+
+def hasReachedFinalNonCancelledStation(t):
+    for timetableRow in reversed(t['timeTableRows']):
+        if 'actualTime' in timetableRow:
+            return True
+        elif timetableRow['cancelled']:
+            continue
+        else:
+            break
+
+    return False
+
 class railDigitrafficClient(threading.Thread):
     def __init__(self, category_filters=None, type_filters=None, keep_timetable_rows=False):
         super(railDigitrafficClient, self).__init__()
@@ -278,16 +296,13 @@ class railDigitrafficClient(threading.Thread):
                 if self.type_filters and not t['trainType'] in self.type_filters:
                     continue
 
-                # Juna saapunut maaranpaahan
-#                if 'actualTime' in t['timeTableRows'][-1]:
-#                    continue
-
-                # Juna ei ole viel lahtenut -> ei ennusteita
-                if not t['runningCurrently'] and not t['cancelled']:
+                #No estimates available
+                if not hasEstimates(t) and not t['cancelled']:
                     continue
 
-#                if not 'actualTime' in t['timeTableRows'][0]:
-#                    continue
+                #Train has reached its final station
+                if hasReachedFinalNonCancelledStation(t) and not t['cancelled']:
+                    continue
 
                 t = self.handleTimetableRows(t)
 
