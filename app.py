@@ -666,6 +666,9 @@ class railGTFSRTProvider(object):
             for tripid in route['trips']:
                 t = self.trips[tripid]
 
+                if len(t['stoptimes']) == 0:
+                    continue
+
                 depart = t['stoptimes'][0]['departure_time']
                 depart_stop = t['stoptimes'][0]['stop_id']
 
@@ -726,8 +729,11 @@ class railGTFSRTProvider(object):
 
         tk = (train['first']['stationShortCode'], train['first']
               ['scheduledTime'].time().replace(second=0))
-        date_services = self.dateservices[datetime.datetime.strptime(
-            train['departureDate'], '%Y-%m-%d').date()]
+        departure_date = datetime.datetime.strptime(
+            train['departureDate'], '%Y-%m-%d').date()
+        if departure_date not in self.dateservices:
+            return False
+        date_services = self.dateservices[departure_date]
 
         seen_combinations = set()
 
