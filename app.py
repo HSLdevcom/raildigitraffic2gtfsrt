@@ -801,6 +801,10 @@ class railGTFSRTProvider(object):
 
                         ix += 1
 
+                    if station_times_index == -1:
+                        #No matching stops
+                        continue
+
                     if skipped:
                         if DEBUG:
                             print(routeid, tripid, train['trainNumber'], train['commuterLineID']
