@@ -836,7 +836,7 @@ class railGTFSRTProvider(object):
 
                     for ix, stopid, dt_arr, dt_dep in stus:
                         stu = ent.trip_update.stop_time_update.add()
-                        stu.stop_sequence = ix
+                        #stu.stop_sequence = ix
                         stu.stop_id = stopid
 
                         if dt_arr:
