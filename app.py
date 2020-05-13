@@ -779,6 +779,7 @@ class railGTFSRTProvider(object):
                         #If no matching station was found, try next stop
                         #This can happen if the train journey is partially cancelled from the beginning and it is being modeled by a replacement train
                         if station_times_index == -1:
+                            stus.append((ix, stopid, None, None))
                             continue
 
                         dt_arr = station_times[station_times_index][0]
