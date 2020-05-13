@@ -1,6 +1,7 @@
 from __future__ import print_function
 import gtfs_realtime_pb2
-from flask import Flask
+from google.protobuf import text_format
+from flask import Flask, Response
 import time
 import os
 import requests
@@ -1007,7 +1008,7 @@ if __name__ == '__main__':
         if not debug:
             return ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
-            return str(ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
+            return Response(text_format.MessageToString(ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential)), mimetype='text/plain; charset=utf-8')
 
     hslgtfsprov = railGTFSRTProvider(trainupdater, HSL_ZIP)
 
@@ -1020,7 +1021,7 @@ if __name__ == '__main__':
         if not debug:
             return hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
-            return str(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
+            return Response(text_format.MessageToString(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential)), mimetype='text/plain; charset=utf-8')
 
     # tamperegtfsprov = railGTFSRTProvider(trainupdater, TAMPERE_ZIP)
 
