@@ -31,6 +31,11 @@ FULL_ALERTS = 2
 if DEBUG:
     import pickle
 
+def downloadFromDigitraffic(url, params = None):
+    headers = {
+        'Accept-Encoding': 'gzip'
+    }
+    return requests.get(url, headers = headers, params = params)
 
 def getCompTime(eventrow):
     if 'actualTime' in eventrow:
@@ -63,7 +68,7 @@ def getCategoryCodes(detailed=False):
     if detailed:
         url = 'http://rata.digitraffic.fi/api/v1/metadata/detailed-cause-category-codes'
 
-    r = requests.get(url)
+    r = downloadFromDigitraffic(url)
 
     codes = r.json()
 
@@ -147,7 +152,7 @@ def getTrainSchedules(date=None):
     url = 'http://rata.digitraffic.fi/api/v1/schedules?departure_date=%s' % date.strftime(
         '%Y-%m-%d')
 
-    r = requests.get(url)
+    r = downloadFromDigitraffic(url)
     scheduledata = r.json()
     r.close()
 
@@ -277,7 +282,7 @@ class railDigitrafficClient(threading.Thread):
                 self.trains[t['trainNumber']] = t
 
             try:
-                r = requests.get(
+                r = downloadFromDigitraffic(
                     'http://rata.digitraffic.fi/api/v1/live-trains', params=params)
                 traindata = r.json()
                 r.close()
@@ -344,7 +349,7 @@ class stop2stationResolver(object):
 
     def loadDTStations(self):
 
-        r = requests.get('http://rata.digitraffic.fi/api/v1/metadata/station')
+        r = downloadFromDigitraffic('http://rata.digitraffic.fi/api/v1/metadata/station')
         stations = r.json()
 
         for st in stations:
