@@ -1,2 +1,2 @@
 ## raildigitraffic conversion into GTFS RT format
-[![Build Status](https://travis-ci.org/HSLdevcom/raildigitraffic2gtfsrt.svg?branch=master)](https://travis-ci.org/HSLdevcom/raildigitraffic2gtfsrt)
+[![Build](https://github.com/hsldevcom/raildigitraffic2gtfsrt/workflows/Process%20master%20push%20or%20pr/badge.svg?branch=master)](https://github.com/HSLdevcom/raildigitraffic2gtfsrt/actions)
