@@ -9,8 +9,6 @@ on:
 jobs:
   docker-push:
     if: github.ref == 'refs/heads/master'
-    needs:
-      - test
     runs-on: ubuntu-18.04
     steps:
       - name: Checkout
