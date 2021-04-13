@@ -326,7 +326,7 @@ class railDigitrafficClient(threading.Thread):
                 arrival_time = t['timeTableRows'][-1]['scheduledTime']
                 if (first_station, departure_time, last_station, arrival_time) in self.cancelled_trains_by_schedule and t['timetableType'] == "ADHOC":
                     # This train is most likely replacing the cancelled train
-                    self.cancelled_train_number = cancelled_trains_by_schedule[(first_station, departure_time, last_station, arrival_time)]
+                    cancelled_train_number = self.cancelled_trains_by_schedule[(first_station, departure_time, last_station, arrival_time)]
                     self.trains.pop(cancelled_train_number)
                     print("Removed train ", cancelled_train_number, " from cancelled trains as it was most likely replaced by train ", t['trainNumber'])
 
