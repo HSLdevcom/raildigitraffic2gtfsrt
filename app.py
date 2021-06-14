@@ -304,6 +304,12 @@ class railDigitrafficClient(threading.Thread):
             tn = tn2 = 0
             for t in traindata:
                 tn += 1
+
+                if not isinstance(t, dict):
+                    print("Train data was not object as expected, skipping..")
+                    print(t)
+                    continue
+
                 if self.category_filters and not t['trainCategory'] in self.category_filters:
                     continue
 
