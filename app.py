@@ -327,8 +327,9 @@ class railDigitrafficClient(threading.Thread):
                 if (first_station, departure_time, last_station, arrival_time) in self.cancelled_trains_by_schedule and t['timetableType'] == "ADHOC":
                     # This train is most likely replacing the cancelled train
                     cancelled_train_number = self.cancelled_trains_by_schedule[(first_station, departure_time, last_station, arrival_time)]
-                    self.trains.pop(cancelled_train_number)
-                    print("Removed train ", cancelled_train_number, " from cancelled trains as it was most likely replaced by train ", t['trainNumber'])
+                    if cancelled_train_number in self.trains:
+                        self.trains.pop(cancelled_train_number)
+                        print("Removed train ", cancelled_train_number, " from cancelled trains as it was most likely replaced by train ", t['trainNumber'])
 
                 if not self.latest_version or t['version'] > self.latest_version:
                     self.latest_version = t['version']
