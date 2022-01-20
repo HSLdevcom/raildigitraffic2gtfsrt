@@ -216,6 +216,8 @@ class railDigitrafficClient(threading.Thread):
         if 'causes' in eventrow and len(eventrow['causes']) > 0:
             for c in eventrow['causes']:
                 if ('categoryCode' not in c):
+                    c[u'categoryText'] = ''
+                    c[u'detailedCategoryText'] = ''
                     continue
                 c[u'categoryText'] = self.cause_category_codes[c[u'categoryCode']]
                 c[u'detailedCategoryText'] = self.cause_detailed_category_codes[c[u'detailedCategoryCode']
