@@ -215,6 +215,8 @@ class railDigitrafficClient(threading.Thread):
     def translateCauses(self, eventrow):
         if 'causes' in eventrow and len(eventrow['causes']) > 0:
             for c in eventrow['causes']:
+                if ('categoryCode' not in c):
+                    continue
                 c[u'categoryText'] = self.cause_category_codes[c[u'categoryCode']]
                 c[u'detailedCategoryText'] = self.cause_detailed_category_codes[c[u'detailedCategoryCode']
                                                                                 ] if 'detailedCategoryCode' in c else None
