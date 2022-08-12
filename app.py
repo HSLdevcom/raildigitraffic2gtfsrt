@@ -47,9 +47,14 @@ def getCompTime(eventrow):
 
 
 def downloadGTFS(urls):
+    authenticationHeader = os.getenv('AUTHENTICATION_HEADER')
+    authenticationToken = os.getenv('AUTHENTICATION_TOKEN')
+    headers = {}
+    if authenticationHeader is not None and authenticationToken is not None:
+        headers[authenticationHeader] = authenticationToken
     for gtfs_url in urls:
         while 1:
-            r = requests.get(gtfs_url)
+            r = requests.get(gtfs_url, headers=headers)
 
             if r.status_code == 200:
                 file_name = gtfs_url.split('/')[-1]
