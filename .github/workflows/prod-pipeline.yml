@@ -5,10 +5,10 @@ on:
       - published
 jobs:
   prod-push:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v6
       - name: Check Tag
         id: check-tag
         run: |
