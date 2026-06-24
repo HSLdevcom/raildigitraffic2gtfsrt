@@ -1,6 +1,7 @@
 from __future__ import print_function
 import gtfs_realtime_pb2
-from flask import Flask
+from google.protobuf import text_format
+from flask import Flask, Response
 import time
 import os
 import requests
@@ -44,7 +45,6 @@ def getCompTime(eventrow):
         return eventrow['liveEstimateTime']
     if 'scheduledTime' in eventrow:
         return eventrow['scheduledTime']
-
 
 def downloadGTFS(urls):
     authenticationHeader = os.getenv('AUTHENTICATION_HEADER')
@@ -754,7 +754,9 @@ class railGTFSRTProvider(object):
 
         today = datetime.datetime.now().replace(
             hour=0, minute=0, second=0, microsecond=0, tzinfo=tzlocal())
-        station_times = {}
+        station_times = []
+
+        prev_tr = None
 
         # ix 1
         for tr in train['timeTableRows']:
@@ -764,8 +766,13 @@ class railGTFSRTProvider(object):
             if not tr['commercialStop']:
                 continue
 
-            station_times[(tr['stationShortCode'], tr['type'],
-                           tr['scheduledTime'].time().replace(second=0))] = tr
+            if tr['type'] == 'DEPARTURE':
+                station_times.append((prev_tr, tr))
+                prev_tr = None
+            else:
+                prev_tr = tr
+
+        station_times.append((prev_tr, None))
 
         tk = (train['first']['stationShortCode'], train['first']
               ['scheduledTime'].time().replace(second=0))
@@ -797,24 +804,26 @@ class railGTFSRTProvider(object):
                     stus = []
                     dbg = []
                     skipped = False
+
+                    station_times_index = -1
+
                     for arr, dep, station, stopid in stops:
                         arr = (today + gtfstime2timedelta(arr)).time()
                         dep = (today + gtfstime2timedelta(dep)).time()
 
-                        dt_arr = dt_dep = None
-                        lkp = station
-                        dbg.append(
-                            str(((lkp, 'ARRIVAL', arr), (lkp, 'ARRIVAL', arr) in station_times)))
-                        if (lkp, 'ARRIVAL', arr) in station_times:
-                            dt_arr = station_times[(lkp, 'ARRIVAL', arr)]
-                        elif (lkp, 'DEPARTURE', arr) in station_times:
-                            dt_arr = station_times[(lkp, 'DEPARTURE', arr)]
+                        #Find first matching station
+                        for i in range(max(0, station_times_index), len(station_times)):
+                            if (station_times[i][0] is not None and station_times[i][0]['stationShortCode'] == station and station_times[i][0]['scheduledTime'].time().replace(second=0) == arr) or (station_times[i][1] is not None and station_times[i][1]['stationShortCode'] == station and station_times[i][1]['scheduledTime'].time().replace(second=0) == dep):
+                                station_times_index = i
 
-                        dbg.append(
-                            str(((lkp, 'DEPARTURE', dep), (lkp, 'DEPARTURE', dep) in station_times)))
+                        #If no matching station was found, try next stop
+                        #This can happen if the train journey is partially cancelled from the beginning and it is being modeled by a replacement train
+                        if station_times_index == -1:
+                            stus.append((ix, stopid, None, None))
+                            continue
 
-                        if (lkp, 'DEPARTURE', dep) in station_times:
-                            dt_dep = station_times[(lkp, 'DEPARTURE', dep)]
+                        dt_arr = station_times[station_times_index][0]
+                        dt_dep = station_times[station_times_index][1]
 
                         if ix == 1 and dt_arr == None:
                             dt_arr = dt_dep
@@ -831,6 +840,10 @@ class railGTFSRTProvider(object):
                             # break
 
                         ix += 1
+
+                    if station_times_index == -1:
+                        #No matching stops
+                        continue
 
                     if skipped:
                         if DEBUG:
@@ -868,7 +881,7 @@ class railGTFSRTProvider(object):
 
                     for ix, stopid, dt_arr, dt_dep in stus:
                         stu = ent.trip_update.stop_time_update.add()
-                        stu.stop_sequence = ix
+                        #stu.stop_sequence = ix
                         stu.stop_id = stopid
 
                         if dt_arr:
@@ -1040,7 +1053,7 @@ if __name__ == '__main__':
         if not debug:
             return ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
-            return str(ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
+            return Response(text_format.MessageToString(ngtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential)), mimetype='text/plain; charset=utf-8')
 
     hslgtfsprov = railGTFSRTProvider(trainupdater, HSL_ZIP)
 
@@ -1053,7 +1066,7 @@ if __name__ == '__main__':
         if not debug:
             return hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential).SerializeToString()
         else:
-            return str(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential))
+            return Response(text_format.MessageToString(hslgtfsprov.buildGTFSRTMessage(alerts=alerts, fuzzy=fuzzy, debug=debug, differential=differential)), mimetype='text/plain; charset=utf-8')
 
     # tamperegtfsprov = railGTFSRTProvider(trainupdater, TAMPERE_ZIP)
 
